@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coffee RPG</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Crimson+Text:ital,wght@0,400;0,600;1,400&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div id="app">
+        <!-- Title Screen -->
+        <div id="screen-title" class="screen active">
+            <div class="title-card">
+                <div class="coffee-cup-icon">&#9749;</div>
+                <h1>Coffee</h1>
+                <p class="subtitle">A storytelling RPG about small moments</p>
+                <div class="title-actions">
+                    <div class="input-group">
+                        <label for="player-name">Your Name</label>
+                        <input type="text" id="player-name" placeholder="Enter your name..." maxlength="24">
+                    </div>
+                    <button id="btn-create" class="btn btn-primary">Create Room</button>
+                    <div class="divider"><span>or</span></div>
+                    <div class="input-group">
+                        <label for="join-code">Room Code</label>
+                        <input type="text" id="join-code" placeholder="XXXXX" maxlength="5"
+                               {% if join_code %}value="{{ join_code }}"{% endif %}>
+                    </div>
+                    <button id="btn-join" class="btn btn-secondary">Join Room</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Lobby -->
+        <div id="screen-lobby" class="screen">
+            <div class="game-panel">
+                <div class="panel-header">
+                    <h2>Lobby</h2>
+                    <div class="room-info">
+                        <span class="room-code-label">Room Code:</span>
+                        <span id="lobby-room-code" class="room-code"></span>
+                        <button id="btn-copy-code" class="btn btn-small" title="Copy code">Copy</button>
+                        <button id="btn-copy-link" class="btn btn-small" title="Copy invite link">Link</button>
+                    </div>
+                </div>
+                <div class="players-list" id="lobby-players"></div>
+                <div id="host-setup" class="host-setup" style="display:none;">
+                    <h3>How do you take your Coffee?</h3>
+                    <div class="style-options">
+                        <label class="style-option">
+                            <input type="radio" name="coffee-style" value="black">
+                            <div class="style-card">
+                                <strong>Black</strong>
+                                <span>Sharper moments, heavier choices, stronger consequences.</span>
+                            </div>
+                        </label>
+                        <label class="style-option">
+                            <input type="radio" name="coffee-style" value="milk" checked>
+                            <div class="style-card">
+                                <strong>With Milk</strong>
+                                <span>Softer scenes, smaller risks, gentler outcomes.</span>
+                            </div>
+                        </label>
+                        <label class="style-option">
+                            <input type="radio" name="coffee-style" value="milk_and_sugar">
+                            <div class="style-card">
+                                <strong>With Milk &amp; Sugar</strong>
+                                <span>Lighthearted scenes, gentle stories, humour.</span>
+                            </div>
+                        </label>
+                    </div>
+                    <h3>Game Length</h3>
+                    <div class="style-options">
+                        <label class="style-option">
+                            <input type="radio" name="game-length" value="espresso" checked>
+                            <div class="style-card">
+                                <strong>Espresso</strong>
+                                <span>3 Sips each &mdash; best for 2&ndash;3 players</span>
+                            </div>
+                        </label>
+                        <label class="style-option">
+                            <input type="radio" name="game-length" value="grande">
+                            <div class="style-card">
+                                <strong>Grande</strong>
+                                <span>2 Sips each &mdash; best for 4&ndash;5 players</span>
+                            </div>
+                        </label>
+                        <label class="style-option">
+                            <input type="radio" name="game-length" value="venti">
+                            <div class="style-card">
+                                <strong>Venti</strong>
+                                <span>1+ Sip each &mdash; best for 6+ players</span>
+                            </div>
+                        </label>
+                        <label class="style-option">
+                            <input type="radio" name="game-length" value="open">
+                            <div class="style-card">
+                                <strong>Open</strong>
+                                <span>Play until the story feels complete or sugar runs out</span>
+                            </div>
+                        </label>
+                    </div>
+                    <button id="btn-start" class="btn btn-primary btn-large">Start Game</button>
+                </div>
+                <div id="guest-waiting" style="display:none;">
+                    <p class="waiting-text">Waiting for the host to start the game...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Game Screen -->
+        <div id="screen-game" class="screen">
+            <div class="game-layout">
+                <!-- Sidebar -->
+                <aside class="sidebar">
+                    <div class="sidebar-section">
+                        <h3>Players</h3>
+                        <div id="game-players"></div>
+                    </div>
+                    <div class="sidebar-section">
+                        <div class="resource-bar">
+                            <span class="resource-label">Sugar</span>
+                            <span id="sugar-count" class="resource-value">0</span>
+                        </div>
+                        <div class="resource-bar">
+                            <span class="resource-label">Sip</span>
+                            <span id="sip-counter" class="resource-value">0</span>
+                        </div>
+                    </div>
+                    <div class="sidebar-section">
+                        <h3>Side Characters</h3>
+                        <div id="side-characters" class="side-chars-list">
+                            <p class="empty-note">None yet</p>
+                        </div>
+                    </div>
+                    <div class="sidebar-section">
+                        <h3>Style</h3>
+                        <div id="coffee-style-display" class="style-badge"></div>
+                    </div>
+                    <div class="sidebar-actions">
+                        <button id="btn-x-card" class="btn btn-danger btn-small">X-Card</button>
+                        <button id="btn-end-game" class="btn btn-small" style="display:none;">End Game</button>
+                    </div>
+                </aside>
+
+                <!-- Main Area -->
+                <main class="main-area">
+                    <!-- Story Log -->
+                    <div id="story-log" class="story-log"></div>
+
+                    <!-- X-Card Overlay -->
+                    <div id="x-card-overlay" class="x-card-overlay" style="display:none;">
+                        <div class="x-card-content">
+                            <div class="x-card-symbol">X</div>
+                            <p>A player has used the X-Card.<br>The current content should be reframed.</p>
+                            <button id="btn-clear-x-card" class="btn btn-primary" style="display:none;">Acknowledge &amp; Continue</button>
+                        </div>
+                    </div>
+
+                    <!-- Active Phase Panel -->
+                    <div id="phase-panel" class="phase-panel">
+                        <!-- Brew Phase -->
+                        <div id="phase-brew" class="phase-content" style="display:none;">
+                            <div class="phase-header">
+                                <h2>Brew</h2>
+                                <span id="brew-narrator" class="narrator-badge"></span>
+                            </div>
+                            <div id="brew-previous-question" class="previous-question"></div>
+                            <div id="brew-cup" class="coffee-cup-container">
+                                <div class="coffee-cup-large">
+                                    <div id="cup-contents" class="cup-contents">
+                                        <span class="cup-prompt">Roll the die</span>
+                                    </div>
+                                </div>
+                                <button id="btn-roll" class="btn btn-primary">Roll Under the Cup</button>
+                            </div>
+                            <div id="brew-result" style="display:none;">
+                                <div id="die-result-display" class="die-result"></div>
+                                <div id="brew-outcome" class="outcome-badge"></div>
+                                <div id="sugar-action" style="display:none;">
+                                    <button id="btn-sugar" class="btn btn-sugar">
+                                        Use Sugar to Invert
+                                    </button>
+                                </div>
+                                <div id="brew-narrate" style="display:none;">
+                                    <label for="brew-text">Narrate how the situation resolves:</label>
+                                    <textarea id="brew-text" rows="6" placeholder="Tell us what happens..."></textarea>
+                                    <button id="btn-submit-brew" class="btn btn-primary">Reveal &amp; Continue</button>
+                                </div>
+                            </div>
+                            <div id="brew-waiting" style="display:none;">
+                                <p class="waiting-text" id="brew-waiting-text"></p>
+                            </div>
+                        </div>
+
+                        <!-- Pour Phase -->
+                        <div id="phase-pour" class="phase-content" style="display:none;">
+                            <div class="phase-header">
+                                <h2>Pour</h2>
+                                <span id="pour-narrator" class="narrator-badge"></span>
+                            </div>
+                            <div id="pour-form" style="display:none;">
+                                <p class="pour-prompt">"This Coffee..."</p>
+                                <label for="pour-text">Describe the Coffee and narrate the scene:</label>
+                                <textarea id="pour-text" rows="8" placeholder="This Coffee is..."></textarea>
+                                <label for="pour-question">End with a question (two possible outcomes):</label>
+                                <textarea id="pour-question" rows="3" placeholder="Do I... or do I...?"></textarea>
+
+                                <div class="sharing-cup">
+                                    <h4>Sharing a Cup <span class="optional">(optional)</span></h4>
+                                    <div class="cup-actions">
+                                        <label class="style-option compact">
+                                            <input type="radio" name="coffee-action" value="">
+                                            <div class="style-card"><strong>No side character</strong></div>
+                                        </label>
+                                        <label class="style-option compact">
+                                            <input type="radio" name="coffee-action" value="drunk">
+                                            <div class="style-card"><strong>Coffee is drunk</strong><span>Introduce a positive side character</span></div>
+                                        </label>
+                                        <label class="style-option compact">
+                                            <input type="radio" name="coffee-action" value="spilled">
+                                            <div class="style-card"><strong>Coffee is spilled</strong><span>Introduce a negative side character</span></div>
+                                        </label>
+                                    </div>
+                                    <div id="side-char-fields" style="display:none;">
+                                        <input type="text" id="side-char-name" placeholder="Character name" maxlength="48">
+                                        <input type="text" id="side-char-desc" placeholder="Brief description" maxlength="120">
+                                    </div>
+                                </div>
+                                <button id="btn-submit-pour" class="btn btn-primary">Pour</button>
+                            </div>
+                            <div id="pour-waiting" style="display:none;">
+                                <p class="waiting-text" id="pour-waiting-text"></p>
+                            </div>
+                        </div>
+                    </div>
+                </main>
+            </div>
+        </div>
+
+        <!-- End Screen -->
+        <div id="screen-end" class="screen">
+            <div class="game-panel end-panel">
+                <div class="coffee-cup-icon">&#9749;</div>
+                <h2>The Cup is Empty</h2>
+                <p class="subtitle">Your story has been told.</p>
+                <div id="end-story-log" class="story-log compact"></div>
+                <button id="btn-new-game" class="btn btn-primary">New Game</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast container -->
+    <div id="toast-container"></div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.4/socket.io.min.js"></script>
+    <script src="/static/game.js"></script>
+</body>
+</html>
