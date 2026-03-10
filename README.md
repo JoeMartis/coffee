@@ -1,4 +1,6 @@
-# Coffee
+# This Coffee
+
+**The Caffeinated Storytelling RPG**
 
 A collaborative storytelling RPG about small moments. 2–10 players take turns narrating scenes framed around the ritual of drinking coffee — each sip a chance to shape the story.
 
