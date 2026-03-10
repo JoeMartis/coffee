@@ -7,7 +7,7 @@ from game import GameManager, Phase
 
 app = Flask(__name__)
 app.config["SECRET_KEY"] = os.urandom(24).hex()
-socketio = SocketIO(app, cors_allowed_origins="*", async_mode="eventlet")
+socketio = SocketIO(app, cors_allowed_origins="*", async_mode="threading")
 
 gm = GameManager()
 
